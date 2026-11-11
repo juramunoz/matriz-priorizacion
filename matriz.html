@@ -363,16 +363,16 @@
   }
 
   const DEMO = [
-    ["1. Comercial","Nuevo canal de e-commerce directo","alto","muy alto"],
-    ["1. Comercial","Programa de fidelización","bajo","neutro"],
-    ["2. Operaciones","Optimizar logística de distribución","neutro","alto"],
-    ["2. Operaciones","Migrar ERP a la nube","muy alto","neutro"],
-    ["2. Operaciones","Rediseño de empaques premium","muy alto","bajo"],
-    ["3. Marca","Campaña de notoriedad regional","bajo","alto"],
-    ["3. Marca","Rebranding completo","muy alto","neutro"],
-    ["4. Innovación","Línea de productos sin azúcar","alto","muy alto"],
-    ["4. Innovación","Piloto de agricultura de precisión","neutro","neutro"],
-    ["5. Personas","Plan de capacitación interna","bajo","bajo"],
+    ["1. Comercial","Nuevo canal de e-commerce directo",7,9],
+    ["1. Comercial","Programa de fidelización",3,6],
+    ["2. Operaciones","Optimizar logística de distribución",5,8],
+    ["2. Operaciones","Migrar ERP a la nube",9,5],
+    ["2. Operaciones","Rediseño de empaques premium",8,4],
+    ["3. Marca","Campaña de notoriedad regional",4,7],
+    ["3. Marca","Rebranding completo",9,6],
+    ["4. Innovación","Línea de productos sin azúcar",7,10],
+    ["4. Innovación","Piloto de agricultura de precisión",6,5],
+    ["5. Personas","Plan de capacitación interna",3,4],
   ];
 
   // ---- scale mapping ----
@@ -380,13 +380,15 @@
   function level(s){
     const n = norm(s);
     if(!n) return null;
-    if(n.includes("muy alto")) return 5;
+    // Escala principal: números 1 a 10 (1 = muy bajo, 10 = muy alto).
+    // Las palabras se mantienen para compatibilidad con planillas antiguas.
+    if(n.includes("muy alto")) return 10;
     if(n.includes("muy bajo")) return 1;
-    if(n.includes("alto")) return 4;
-    if(n.includes("bajo")) return 2;
-    if(n.includes("neutro")||n.includes("neutral")||n.includes("medio")) return 3;
+    if(n.includes("alto")) return 8;
+    if(n.includes("bajo")) return 3;
+    if(n.includes("neutro")||n.includes("neutral")||n.includes("medio")) return 5.5;
     const num = parseFloat(n.replace(",","."));
-    if(!isNaN(num)) return Math.max(1,Math.min(5,num));
+    if(!isNaN(num)) return Math.max(1,Math.min(10,num));
     return null;
   }
 
@@ -446,10 +448,10 @@
   // ---- quadrant classification ----
   function quad(ea,im){
     if(ea==null||im==null) return "unclassified";
-    if(im>3 && ea<3) return "qw";
-    if(im>3 && ea>3) return "st";
-    if(im<3 && ea<3) return "fi";
-    if(im<3 && ea>3) return "dc";
+    if(im>5.5 && ea<5.5) return "qw";
+    if(im>5.5 && ea>5.5) return "st";
+    if(im<5.5 && ea<5.5) return "fi";
+    if(im<5.5 && ea>5.5) return "dc";
     return "nt";
   }
   const QMETA={
@@ -483,7 +485,7 @@
   const temaLegendEl=document.getElementById("temaLegend");
   const bubbles=new Map();
 
-  function pos(ea,im){ const fx=(ea-1)/4, fy=(im-1)/4; return { x:11+fx*78, y:11+(1-fy)*78 }; }
+  function pos(ea,im){ const fx=(ea-1)/9, fy=(im-1)/9; return { x:11+fx*78, y:11+(1-fy)*78 }; }
   function layout(items){
     const groups={};
     items.forEach(function(it,idx){
@@ -544,8 +546,7 @@
     renderSide(items);
   }
 
-  const SCALE={1:"Muy bajo",2:"Bajo",3:"Neutro",4:"Alto",5:"Muy alto"};
-  function scaleLabel(v){ return SCALE[Math.round(v)]||v; }
+  function scaleLabel(v){ if(v==null||isNaN(v)) return v; const r=Math.round(v*10)/10; return (Number.isInteger(r)?r:r.toFixed(1))+"/10"; }
   function esc(s){ return (s||"").replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];}); }
 
   function renderSide(items){
